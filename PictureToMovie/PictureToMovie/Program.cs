@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System.Text;
 
 namespace PictureToMovie
 {
@@ -6,75 +6,44 @@ namespace PictureToMovie
     {
         static void Main(string[] args)
         {
-            string imageFolderPath = @"C:\LZ\米哈喵呀\尚未发布\AI绘图图片\崩铁\流萤";
-            string audioFilePath = @"C:\LZ\米哈喵呀\尚未发布\FreshFocus.mp3";
-            string outputPath = @"C:\LZ\output.mp4";
-
-            try
+            // 图片所在的文件夹的位置
+            string imageFolderPath = @"D:\File\米哈喵呀\图片\鸣潮\秧秧";
+            // 背景音乐mp3文件的位置
+            string audioFilePath = @"D:\File\米哈喵呀\音乐\BackgroundMusic.mp3";
+            // 视频输出文件夹的位置
+            string outputFolderPath = @"D:\File\米哈喵呀\视频\尚未发布\";
+            // 生成的视频数量
+            int videoCount = 3;
+            // 获取图片文件夹下所有png图片的文件路径
+            string[] pngFiles = Directory.GetFiles(imageFolderPath, "*.png", SearchOption.TopDirectoryOnly);
+            // ffmpeg使用的 临时txt文件的存放位置
+            string tempFilePath = Path.Combine(Directory.GetCurrentDirectory(), "temp.txt");
+            
+            for (int i = 1; i <= videoCount; i++)
             {
-                // 创建临时目录存放有序图片
-                string tempImageDir = Path.Combine(Path.GetTempPath(), "VideoGenerator");
-                Directory.CreateDirectory(tempImageDir);
+                // 获取的图片数量
+                int pictureCount = 10;
 
-                // 随机选择并拷贝图片到临时目录
-                var random = new Random();
-                var selectedImages = Directory.GetFiles(imageFolderPath, "*.png")
-                    .OrderBy(_ => random.Next())
-                    .Take(15)
-                    .ToList();
+                // 清空temp.txt文件内容
+                File.WriteAllText(tempFilePath, "");
 
-                // 按顺序重命名图片为img001.png格式
-                for (int i = 0; i < selectedImages.Count; i++)
+                // 从 pngFiles 中任意取 pictureCount 张图片
+                Random random = new Random();
+                string[] selectedPngFiles = pngFiles.OrderBy(x => random.Next()).Take(pictureCount).ToArray();
+
+                // 把 selectedPngFiles 写入 temp.txt
+                using (StreamWriter writer = new StreamWriter(tempFilePath, false, Encoding.Default))
                 {
-                    string destPath = Path.Combine(tempImageDir, $"img{i + 1:000}.png");
-                    File.Copy(selectedImages[i], destPath);
-                }
-
-                // 构建FFmpeg命令
-                string ffmpegArgs = $"-framerate 1/3 " +       // 每3秒一帧
-                                    $"-pattern_type sequence " +
-                                    $"-i \"{tempImageDir}\\img%03d.png\" " +
-                                    $"-i \"{audioFilePath}\" " +
-                                    $"-t 45 " +                // 总时长45秒
-                                    $"-map 0:v " +
-                                    $"-map 1:a " +
-                                    $"-c:v libx264 " +
-                                    $"-vf \"fps=25,format=yuv420p\" " +
-                                    $"-c:a aac " +
-                                    $"-shortest " +
-                                    $"-y " +                   // 覆盖输出文件
-                                    $"\"{outputPath}\"";
-
-                // 执行FFmpeg命令
-                using (var process = new Process())
-                {
-                    process.StartInfo.FileName = "ffmpeg";
-                    process.StartInfo.Arguments = ffmpegArgs;
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
-
-                    Console.WriteLine("开始生成视频...");
-                    process.Start();
-                    string errorOutput = process.StandardError.ReadToEnd();
-                    process.WaitForExit();
-
-                    if (process.ExitCode != 0)
+                    for (int j = 0; j < selectedPngFiles.Length; j++)
                     {
-                        throw new Exception($"FFmpeg错误：\n{errorOutput}");
+                        string formattedPath = selectedPngFiles[j].Replace(@"\", "/");
+                        writer.WriteLine($"file \'{formattedPath}\'"); 
+                        if (j < selectedPngFiles.Length - 1)
+                        {
+                            writer.WriteLine("duration 3");
+                        }
                     }
                 }
-
-                Console.WriteLine($"视频已生成：{outputPath}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"生成失败：{ex.Message}");
-            }
-            finally
-            {
-                // 清理临时文件（可选）
-                // Directory.Delete(tempImageDir, true);
             }
         }
     }
