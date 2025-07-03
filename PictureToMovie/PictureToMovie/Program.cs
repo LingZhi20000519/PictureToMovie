@@ -54,26 +54,24 @@ namespace PictureToMovie
 
                 // 执行ffmpeg命令
                 try
-                {  
-                    using (Process process = new Process())
+                {
+                    using (var process = new Process())
                     {
-                        process.StartInfo.FileName = "ffmpeg"; // 命令名单独设置
-                        process.StartInfo.Arguments = ffmpegArguments; // 只包含参数
+                        process.StartInfo.FileName = "ffmpeg";
+                        process.StartInfo.Arguments = ffmpegArguments;
                         process.StartInfo.UseShellExecute = false;
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.RedirectStandardError = true;
-                        process.StartInfo.RedirectStandardOutput = true;
-                        process.Start();
 
-                        // 捕获输出和错误（用于调试）
+                        Console.WriteLine("开始生成视频...");
+                        process.Start();
+                        string errorOutput = process.StandardError.ReadToEnd();
                         process.WaitForExit();
 
                         if (process.ExitCode != 0)
                         {
-                            throw new Exception($"FFmpeg执行失败");
+                            throw new Exception($"FFmpeg错误：\n{errorOutput}");
                         }
-
-                        Console.WriteLine($"成功生成视频: {output}");
                     }
                 }
                 catch (Exception ex)
