@@ -8,9 +8,9 @@ namespace PictureToMovie
         static void Main(string[] args)
         {
             // 生成的视频数量
-            int videoCount = 3;
+            int videoCount = 10;
             // 图片所在的文件夹的位置
-            string imageFolderPath = @"D:\File\米哈喵呀\图片\鸣潮\秧秧";
+            string imageFolderPath = @"D:\File\米哈喵呀\图片\明日方舟\阿米娅";
             // 背景音乐mp3文件的位置
             string audioFilePath = @"D:\File\米哈喵呀\音乐\BackgroundMusic.mp3";
             // 输出视频的文件夹的位置
