@@ -7,14 +7,20 @@ namespace PictureToMovie
     {
         static void Main(string[] args)
         {
+            // 生成的视频数量
+            int videoCount = 3;
             // 图片所在的文件夹的位置
             string imageFolderPath = @"D:\File\米哈喵呀\图片\鸣潮\秧秧";
             // 背景音乐mp3文件的位置
             string audioFilePath = @"D:\File\米哈喵呀\音乐\BackgroundMusic.mp3";
-            // 视频输出文件夹的位置
+            // 输出视频的文件夹的位置
             string outputFolderPath = @"D:\File\米哈喵呀\视频\尚未发布\";
-            // 生成的视频数量
-            int videoCount = 3;
+            // 输出视频的前缀名
+            string videoName = System.IO.Path.GetFileName(imageFolderPath);
+            // 视频结尾固定求赞图片的位置
+            string endPicturePath = @"D:\File\米哈喵呀\图片\其他\结尾.png";
+
+
             // 获取图片文件夹下所有png图片的文件路径
             string[] pngFiles = Directory.GetFiles(imageFolderPath, "*.png", SearchOption.TopDirectoryOnly);
             // ffmpeg使用的 临时txt文件的存放位置
@@ -26,7 +32,7 @@ namespace PictureToMovie
                 int pictureCount = 10;
 
                 // 正确组合输出路径
-                string output = Path.Combine(outputFolderPath, $"video_{i}.mp4");
+                string output = Path.Combine(outputFolderPath, $"{videoName}美图_{i}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.mp4");
 
                 // 清空temp.txt文件内容
                 File.WriteAllText(tempFilePath, "");
@@ -42,11 +48,10 @@ namespace PictureToMovie
                     {
                         string formattedPath = selectedPngFiles[j].Replace(@"\", "/");
                         writer.WriteLine($"file \'{formattedPath}\'");
-                        if (j < selectedPngFiles.Length - 1)
-                        {
-                            writer.WriteLine("duration 3");
-                        }
+                        writer.WriteLine("duration 3");
+
                     }
+                    writer.WriteLine($"file \'{endPicturePath}\'");
                 }
 
                 // 正确构建FFmpeg参数（不再包含"ffmpeg"命令名）
@@ -63,7 +68,7 @@ namespace PictureToMovie
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.RedirectStandardError = true;
 
-                        Console.WriteLine("开始生成视频...");
+                        Console.WriteLine($"开始生成第{i}个视频");
                         process.Start();
                         string errorOutput = process.StandardError.ReadToEnd();
                         process.WaitForExit();
